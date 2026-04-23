@@ -195,6 +195,29 @@ const sourceScenarios = {
   ],
 }
 
+const walkthroughSteps = [
+  {
+    title: 'Choose your focus',
+    body: 'Use the input selectors to decide what drives each section: daily words, work, social, errands, confidence, or your custom focus.',
+  },
+  {
+    title: 'Pick a word',
+    body: 'Start in Daily Quest. Tap a word you want to practise, then use it as your anchor for the game.',
+  },
+  {
+    title: 'Play the match',
+    body: 'In Meaning Match, choose the meaning that fits the active word. Correct answers add progress for today.',
+  },
+  {
+    title: 'Write one real sentence',
+    body: 'Use the sentence starters in Real-life Task, type one useful sentence, then complete the task to unlock the next scene.',
+  },
+  {
+    title: 'Check progress',
+    body: 'Watch points, level, and active source words. Everything saves on this device and keeps working offline.',
+  },
+]
+
 function loadProgress() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -322,6 +345,8 @@ export default function App() {
   const [feedback, setFeedback] = useState('Pick a meaning and lock in the word.')
   const [scenarioIndex, setScenarioIndex] = useState(initial?.scenarioIndex ?? 0)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
+  const [showWalkthrough, setShowWalkthrough] = useState(initial?.showWalkthrough ?? true)
+  const [walkthroughStep, setWalkthroughStep] = useState(initial?.walkthroughStep ?? 0)
 
   const selected = gameWords.find((item) => item.id === selectedWord) ?? gameWords[0]
   const todayDone = completed[todayKey] ?? []
@@ -352,9 +377,25 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    const progress = { points, completed, scenarioIndex, sectionInputs, customFocus }
+    const progress = {
+      points,
+      completed,
+      scenarioIndex,
+      sectionInputs,
+      customFocus,
+      showWalkthrough,
+      walkthroughStep,
+    }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(progress))
-  }, [points, completed, scenarioIndex, sectionInputs, customFocus])
+  }, [
+    points,
+    completed,
+    scenarioIndex,
+    sectionInputs,
+    customFocus,
+    showWalkthrough,
+    walkthroughStep,
+  ])
 
   useEffect(() => {
     if (!gameWords.some((item) => item.id === selectedWord)) {
@@ -389,6 +430,17 @@ export default function App() {
     setFeedback('Nice sentence. New scene unlocked.')
   }
 
+  function nextWalkthroughStep() {
+    if (walkthroughStep >= walkthroughSteps.length - 1) {
+      setShowWalkthrough(false)
+      setWalkthroughStep(0)
+      return
+    }
+    setWalkthroughStep(walkthroughStep + 1)
+  }
+
+  const activeWalkthrough = walkthroughSteps[walkthroughStep]
+
   return (
     <main className="app-shell">
       <section className="hero-panel" aria-labelledby="app-title">
@@ -416,6 +468,10 @@ export default function App() {
               <span>today</span>
             </div>
           </div>
+          <button className="guide-toggle" type="button" onClick={() => setShowWalkthrough(true)}>
+            <Icon type="spark" />
+            Walk me through
+          </button>
         </div>
         <div className="quest-orbit" aria-hidden="true">
           <div className="orbit-card active">
@@ -432,6 +488,33 @@ export default function App() {
           </div>
         </div>
       </section>
+
+      {showWalkthrough && (
+        <section className="walkthrough-panel" aria-labelledby="walkthrough-title">
+          <div className="walkthrough-copy">
+            <span>
+              Step {walkthroughStep + 1} of {walkthroughSteps.length}
+            </span>
+            <h2 id="walkthrough-title">{activeWalkthrough.title}</h2>
+            <p>{activeWalkthrough.body}</p>
+          </div>
+          <div className="walkthrough-actions">
+            <button
+              type="button"
+              className="secondary-action"
+              onClick={() => {
+                setShowWalkthrough(false)
+                setWalkthroughStep(0)
+              }}
+            >
+              Skip
+            </button>
+            <button className="primary-action compact" type="button" onClick={nextWalkthroughStep}>
+              {walkthroughStep >= walkthroughSteps.length - 1 ? 'Start learning' : 'Next step'}
+            </button>
+          </div>
+        </section>
+      )}
 
       <section className="dashboard-grid" aria-label="Learning dashboard">
         <article className="panel lesson-panel">

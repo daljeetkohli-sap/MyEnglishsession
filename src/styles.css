@@ -150,6 +150,72 @@ h1 {
   text-transform: uppercase;
 }
 
+.guide-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: fit-content;
+  min-height: 48px;
+  margin-top: 18px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fffaf0;
+  font-weight: 900;
+}
+
+.walkthrough-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  margin-top: 16px;
+  padding: 20px;
+  border: 1px solid rgba(23, 107, 95, 0.22);
+  border-radius: 8px;
+  background: #fffaf0;
+  box-shadow: 0 18px 42px rgba(43, 56, 58, 0.09);
+}
+
+.walkthrough-copy span {
+  color: #df5436;
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.walkthrough-copy h2 {
+  margin-top: 6px;
+  color: #172126;
+  font-size: 1.45rem;
+}
+
+.walkthrough-copy p {
+  max-width: 780px;
+  margin-top: 8px;
+  color: #405050;
+  line-height: 1.55;
+}
+
+.walkthrough-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.secondary-action {
+  min-height: 46px;
+  padding: 0 16px;
+  border: 1px solid #cbd3cb;
+  border-radius: 8px;
+  background: #fff;
+  color: #172126;
+  font-weight: 900;
+}
+
 .quest-orbit {
   position: relative;
   z-index: 1;
@@ -505,8 +571,17 @@ textarea:focus {
     box-shadow 160ms ease;
 }
 
+.primary-action.compact {
+  min-height: 46px;
+  margin: 0;
+}
+
 .primary-action:hover,
-.primary-action:focus-visible {
+.primary-action:focus-visible,
+.guide-toggle:hover,
+.guide-toggle:focus-visible,
+.secondary-action:hover,
+.secondary-action:focus-visible {
   box-shadow: 0 12px 26px rgba(223, 84, 54, 0.24);
 }
 
@@ -608,6 +683,18 @@ textarea:focus {
     min-height: 260px;
   }
 
+  .walkthrough-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .walkthrough-actions {
+    justify-content: stretch;
+  }
+
+  .walkthrough-actions button {
+    flex: 1 1 150px;
+  }
+
   .lesson-panel,
   .game-panel,
   .task-panel,
@@ -623,6 +710,10 @@ textarea:focus {
 @media (max-width: 560px) {
   .hero-actions {
     grid-template-columns: 1fr;
+  }
+
+  .guide-toggle {
+    width: 100%;
   }
 
   .quest-orbit {
