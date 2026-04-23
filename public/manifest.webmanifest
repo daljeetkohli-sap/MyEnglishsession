@@ -1,0 +1,17 @@
+{
+  "name": "Aussie English Daily Quest",
+  "short_name": "Daily Quest",
+  "description": "Offline-first vocabulary and daily task game for practical Aussie English.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f3ea",
+  "theme_color": "#173d3b",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
