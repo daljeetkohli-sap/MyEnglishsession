@@ -120,6 +120,81 @@ const scenarios = [
   },
 ]
 
+const sourceOptions = [
+  { id: 'daily', label: 'Daily mix' },
+  { id: 'work', label: 'Work' },
+  { id: 'social', label: 'Social' },
+  { id: 'errands', label: 'Errands' },
+  { id: 'confidence', label: 'Confidence' },
+  { id: 'custom', label: 'Custom focus' },
+]
+
+const sourceCategories = {
+  work: ['Work', 'Daily planning', 'Goals', 'Opinion'],
+  social: ['Social', 'Hospitality', 'Encouragement'],
+  errands: ['Errands', 'Travel', 'Safety'],
+  confidence: ['Goals', 'Opinion', 'Encouragement', 'Work'],
+}
+
+const sourceScenarios = {
+  daily: scenarios,
+  work: [
+    {
+      title: 'Team Update',
+      prompt: 'Tell a teammate what you are working on and when you will finish.',
+      starters: ['I reckon...', 'This arvo I will...', 'Thanks heaps for...'],
+    },
+    {
+      title: 'Quick Follow-up',
+      prompt: 'Ask for a missing detail in a friendly workplace message.',
+      starters: ['Could you please...', 'No worries if...', 'I am keen to...'],
+    },
+  ],
+  social: [
+    {
+      title: 'Friendly Chat',
+      prompt: 'Greet someone and ask one natural follow-up question.',
+      starters: ['Hey mate...', 'Are you keen to...', 'Good on ya for...'],
+    },
+    {
+      title: 'Small Apology',
+      prompt: 'Respond kindly when someone says sorry for being late.',
+      starters: ['No worries...', 'All good...', 'Thanks heaps for...'],
+    },
+  ],
+  errands: [
+    {
+      title: 'Out and About',
+      prompt: 'Explain one quick errand you need to do today.',
+      starters: ['I need to stop at...', 'I reckon the servo...', 'This looks dodgy...'],
+    },
+    {
+      title: 'Simple Direction',
+      prompt: 'Give one clear travel direction using everyday language.',
+      starters: ['Chuck a U-ey...', 'Head past the...', 'No worries, we can...'],
+    },
+  ],
+  confidence: [
+    {
+      title: 'Personal Goal',
+      prompt: 'Say one thing you are keen to improve this week.',
+      starters: ['I am keen to...', 'I reckon I can...', 'Good on ya for...'],
+    },
+    {
+      title: 'Positive Reply',
+      prompt: 'Encourage someone who completed a hard task.',
+      starters: ['Good on ya...', 'Thanks heaps for...', 'I reckon you...'],
+    },
+  ],
+  custom: [
+    {
+      title: 'Custom Practice',
+      prompt: 'Use your custom focus words in one useful sentence for today.',
+      starters: ['Today I will use...', 'I reckon...', 'I am keen to...'],
+    },
+  ],
+}
+
 function loadProgress() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -139,8 +214,65 @@ function getDailySet() {
   return [0, 1, 2].map((offset) => vocabulary[(daySeed + offset * 3) % vocabulary.length])
 }
 
+function makeCustomWords(customFocus) {
+  return customFocus
+    .split(',')
+    .map((word) => word.trim())
+    .filter(Boolean)
+    .slice(0, 3)
+    .map((word, index) => ({
+      id: `custom-${normalize(word) || index}`,
+      word,
+      meaning: `your custom focus ${index + 1}`,
+      example: `Practise "${word}" in a sentence you can use today.`,
+      task: `Use "${word}" in one useful sentence.`,
+      category: 'Custom',
+    }))
+}
+
+function getWordsForSource(sourceId, dailyWords, customFocus) {
+  if (sourceId === 'daily') return dailyWords
+
+  if (sourceId === 'custom') {
+    const customWords = makeCustomWords(customFocus)
+    return customWords.length ? customWords : dailyWords
+  }
+
+  const categories = sourceCategories[sourceId] ?? []
+  const sourceWords = vocabulary.filter((item) => categories.includes(item.category))
+  return sourceWords.length >= 3 ? sourceWords.slice(0, 3) : dailyWords
+}
+
+function getScenarioForSource(sourceId, scenarioIndex) {
+  const sourceSet = sourceScenarios[sourceId] ?? scenarios
+  return sourceSet[scenarioIndex % sourceSet.length]
+}
+
 function normalize(text) {
   return text.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim()
+}
+
+function SourceControl({ id, label, value, customFocus, onSourceChange, onCustomFocusChange }) {
+  return (
+    <div className="source-control">
+      <label htmlFor={id}>{label}</label>
+      <select id={id} value={value} onChange={(event) => onSourceChange(event.target.value)}>
+        {sourceOptions.map((option) => (
+          <option key={option.id} value={option.id}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+      {value === 'custom' && (
+        <input
+          type="text"
+          value={customFocus}
+          onChange={(event) => onCustomFocusChange(event.target.value)}
+          placeholder="e.g. meeting, shopping, phone call"
+        />
+      )}
+    </div>
+  )
 }
 
 function Icon({ type }) {
@@ -162,26 +294,51 @@ function Icon({ type }) {
 
 export default function App() {
   const todayKey = getTodayKey()
-  const dailySet = useMemo(getDailySet, [])
   const initial = loadProgress()
+  const baseDailySet = useMemo(getDailySet, [])
   const [points, setPoints] = useState(initial?.points ?? 0)
   const [completed, setCompleted] = useState(initial?.completed ?? {})
-  const [selectedWord, setSelectedWord] = useState(dailySet[0].id)
+  const [sectionInputs, setSectionInputs] = useState(
+    initial?.sectionInputs ?? {
+      quest: 'daily',
+      game: 'daily',
+      task: 'daily',
+      progress: 'daily',
+    },
+  )
+  const [customFocus, setCustomFocus] = useState(
+    initial?.customFocus ?? 'meeting, shopping, phone call',
+  )
+  const questWords = useMemo(
+    () => getWordsForSource(sectionInputs.quest, baseDailySet, customFocus),
+    [baseDailySet, customFocus, sectionInputs.quest],
+  )
+  const gameWords = useMemo(
+    () => getWordsForSource(sectionInputs.game, baseDailySet, customFocus),
+    [baseDailySet, customFocus, sectionInputs.game],
+  )
+  const [selectedWord, setSelectedWord] = useState(questWords[0].id)
   const [answer, setAnswer] = useState('')
   const [feedback, setFeedback] = useState('Pick a meaning and lock in the word.')
   const [scenarioIndex, setScenarioIndex] = useState(initial?.scenarioIndex ?? 0)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
 
-  const selected = vocabulary.find((item) => item.id === selectedWord) ?? dailySet[0]
+  const selected = gameWords.find((item) => item.id === selectedWord) ?? gameWords[0]
   const todayDone = completed[todayKey] ?? []
-  const dailyDoneCount = dailySet.filter((item) => todayDone.includes(item.id)).length
+  const dailyDoneCount = questWords.filter((item) => todayDone.includes(item.id)).length
   const level = Math.floor(points / 80) + 1
   const levelProgress = points % 80
-  const currentScenario = scenarios[scenarioIndex % scenarios.length]
+  const currentScenario = getScenarioForSource(sectionInputs.task, scenarioIndex)
+  const progressWords = getWordsForSource(sectionInputs.progress, baseDailySet, customFocus)
   const shuffledMeanings = useMemo(
-    () => [...dailySet].sort((a, b) => a.meaning.localeCompare(b.meaning)),
-    [dailySet],
+    () => [...gameWords].sort((a, b) => a.meaning.localeCompare(b.meaning)),
+    [gameWords],
   )
+
+  function updateSectionInput(section, value) {
+    setSectionInputs({ ...sectionInputs, [section]: value })
+    setFeedback('Section input updated. Keep playing from the new source.')
+  }
 
   useEffect(() => {
     const onOnline = () => setIsOnline(true)
@@ -195,9 +352,15 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    const progress = { points, completed, scenarioIndex }
+    const progress = { points, completed, scenarioIndex, sectionInputs, customFocus }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(progress))
-  }, [points, completed, scenarioIndex])
+  }, [points, completed, scenarioIndex, sectionInputs, customFocus])
+
+  useEffect(() => {
+    if (!gameWords.some((item) => item.id === selectedWord)) {
+      setSelectedWord(gameWords[0].id)
+    }
+  }, [gameWords, selectedWord])
 
   function completeDailyTask(id) {
     const alreadyDone = todayDone.includes(id)
@@ -282,7 +445,15 @@ export default function App() {
             </div>
           </div>
           <div className="word-list">
-            {dailySet.map((item) => (
+            <SourceControl
+              id="quest-source"
+              label="Quest input"
+              value={sectionInputs.quest}
+              customFocus={customFocus}
+              onSourceChange={(value) => updateSectionInput('quest', value)}
+              onCustomFocusChange={setCustomFocus}
+            />
+            {questWords.map((item) => (
               <button
                 key={item.id}
                 className={`word-button ${selectedWord === item.id ? 'selected' : ''}`}
@@ -311,6 +482,14 @@ export default function App() {
             </div>
           </div>
           <div className="focus-word">
+            <SourceControl
+              id="game-source"
+              label="Game input"
+              value={sectionInputs.game}
+              customFocus={customFocus}
+              onSourceChange={(value) => updateSectionInput('game', value)}
+              onCustomFocusChange={setCustomFocus}
+            />
             <span>Match this word</span>
             <strong>{selected.word}</strong>
             <p>{selected.example}</p>
@@ -337,6 +516,14 @@ export default function App() {
               <h2>{currentScenario.title}</h2>
             </div>
           </div>
+          <SourceControl
+            id="task-source"
+            label="Task input"
+            value={sectionInputs.task}
+            customFocus={customFocus}
+            onSourceChange={(value) => updateSectionInput('task', value)}
+            onCustomFocusChange={setCustomFocus}
+          />
           <p className="scenario-prompt">{currentScenario.prompt}</p>
           <div className="starter-row" aria-label="Sentence starters">
             {currentScenario.starters.map((starter) => (
@@ -375,6 +562,14 @@ export default function App() {
               <h2>Level {level}</h2>
             </div>
           </div>
+          <SourceControl
+            id="progress-source"
+            label="Progress input"
+            value={sectionInputs.progress}
+            customFocus={customFocus}
+            onSourceChange={(value) => updateSectionInput('progress', value)}
+            onCustomFocusChange={setCustomFocus}
+          />
           <div className="level-meter" aria-label={`${levelProgress} of 80 points to next level`}>
             <span style={{ width: `${(levelProgress / 80) * 100}%` }} />
           </div>
@@ -388,8 +583,8 @@ export default function App() {
               <strong>Local content only</strong>
             </div>
             <div>
-              <span>Daily rhythm</span>
-              <strong>3 short wins</strong>
+              <span>Active source</span>
+              <strong>{progressWords.map((item) => item.word).join(', ')}</strong>
             </div>
           </div>
         </article>

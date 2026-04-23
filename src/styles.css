@@ -27,6 +27,8 @@ body {
 }
 
 button,
+input,
+select,
 textarea {
   font: inherit;
 }
@@ -266,6 +268,59 @@ h1 {
   display: grid;
   gap: 10px;
   padding: 20px;
+}
+
+.source-control {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #d8ddd6;
+  border-radius: 8px;
+  background: #f7f3ea;
+}
+
+.focus-word .source-control {
+  margin-bottom: 16px;
+  border-color: rgba(255, 247, 221, 0.22);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.task-panel > .source-control,
+.progress-panel > .source-control {
+  margin: 20px 20px 0;
+}
+
+.source-control label {
+  color: #60706f;
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.focus-word .source-control label {
+  color: rgba(255, 247, 221, 0.72);
+}
+
+.source-control select,
+.source-control input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid #cbd3cb;
+  border-radius: 8px;
+  background: #fff;
+  color: #172126;
+  font-weight: 800;
+}
+
+.source-control input {
+  font-weight: 700;
+}
+
+.source-control select:focus,
+.source-control input:focus {
+  border-color: #176b5f;
+  outline: 3px solid rgba(23, 107, 95, 0.16);
 }
 
 .word-button {
@@ -576,6 +631,8 @@ textarea:focus {
 
   .panel-heading,
   .word-list,
+  .task-panel > .source-control,
+  .progress-panel > .source-control,
   .focus-word,
   .scenario-prompt,
   .starter-row,
