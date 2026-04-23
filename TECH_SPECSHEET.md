@@ -12,7 +12,7 @@ Version: MVP live app
 Primary branch: `main`  
 Repository: `https://github.com/daljeetkohli-sap/MyEnglishsession`  
 Live target: `https://daljeetkohli-sap.github.io/MyEnglishsession/`  
-Local dev path: `http://127.0.0.1:5188/MyEnglishsession/`
+Local dev path: `http://127.0.0.1:5188/`
 
 ## Current Features
 
@@ -92,11 +92,20 @@ Custom focus accepts comma-separated user topics such as `meeting, shopping, pho
 ### Deployment
 
 - GitHub Pages deployment workflow in `.github/workflows/deploy-pages.yml`
-- Vite base path configured for `/MyEnglishsession/`
+- Vite base path is dynamic:
+  - Local dev uses `/`
+  - GitHub Actions production build uses `/MyEnglishsession/`
 - Production build generated with `npm run build`
 - Build output remains small for low data consumption
 
 ## Commit Feature Log
+
+### Latest commit - Fix local dev base path
+
+- Updated Vite base-path configuration so local dev runs at `http://127.0.0.1:5188/`
+- Preserved GitHub Pages production path at `/MyEnglishsession/` during GitHub Actions builds
+- Verified local HTML points to `/src/main.jsx`
+- Verified production GitHub Pages build points to `/MyEnglishsession/assets/...`
 
 ### `a63dd20` - Add end user walkthrough
 
