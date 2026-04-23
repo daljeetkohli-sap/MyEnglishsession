@@ -177,6 +177,12 @@ h1 {
   border-radius: 8px;
   background: #fffaf0;
   box-shadow: 0 18px 42px rgba(43, 56, 58, 0.09);
+  scroll-margin-top: 16px;
+}
+
+.walkthrough-panel:focus {
+  outline: 3px solid rgba(23, 107, 95, 0.18);
+  outline-offset: 3px;
 }
 
 .walkthrough-copy span {

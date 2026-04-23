@@ -100,6 +100,14 @@ Custom focus accepts comma-separated user topics such as `meeting, shopping, pho
 
 ## Commit Feature Log
 
+### Pending commit - Make walkthrough button restart guide
+
+- Updated the `Walk me through` button so it restarts at step 1 every time
+- Added automatic scrolling to the walkthrough panel when the guide opens or advances
+- Added focus styling and scroll margin for the walkthrough panel
+- Disabled service-worker registration in local development to avoid stale cached UI during testing
+- Improves end-user clarity when the guide appears below the hero area
+
 ### Latest commit - Fix local dev base path
 
 - Updated Vite base-path configuration so local dev runs at `http://127.0.0.1:5188/`

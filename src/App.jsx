@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import './styles.css'
 
 const STORAGE_KEY = 'aussieEnglishGameProgressV1'
@@ -347,6 +347,7 @@ export default function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine)
   const [showWalkthrough, setShowWalkthrough] = useState(initial?.showWalkthrough ?? true)
   const [walkthroughStep, setWalkthroughStep] = useState(initial?.walkthroughStep ?? 0)
+  const walkthroughRef = useRef(null)
 
   const selected = gameWords.find((item) => item.id === selectedWord) ?? gameWords[0]
   const todayDone = completed[todayKey] ?? []
@@ -403,6 +404,14 @@ export default function App() {
     }
   }, [gameWords, selectedWord])
 
+  useEffect(() => {
+    if (showWalkthrough) {
+      window.requestAnimationFrame(() => {
+        walkthroughRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+    }
+  }, [showWalkthrough, walkthroughStep])
+
   function completeDailyTask(id) {
     const alreadyDone = todayDone.includes(id)
     const nextForToday = alreadyDone ? todayDone : [...todayDone, id]
@@ -439,6 +448,11 @@ export default function App() {
     setWalkthroughStep(walkthroughStep + 1)
   }
 
+  function restartWalkthrough() {
+    setWalkthroughStep(0)
+    setShowWalkthrough(true)
+  }
+
   const activeWalkthrough = walkthroughSteps[walkthroughStep]
 
   return (
@@ -468,7 +482,7 @@ export default function App() {
               <span>today</span>
             </div>
           </div>
-          <button className="guide-toggle" type="button" onClick={() => setShowWalkthrough(true)}>
+          <button className="guide-toggle" type="button" onClick={restartWalkthrough}>
             <Icon type="spark" />
             Walk me through
           </button>
@@ -490,7 +504,12 @@ export default function App() {
       </section>
 
       {showWalkthrough && (
-        <section className="walkthrough-panel" aria-labelledby="walkthrough-title">
+        <section
+          className="walkthrough-panel"
+          aria-labelledby="walkthrough-title"
+          ref={walkthroughRef}
+          tabIndex="-1"
+        >
           <div className="walkthrough-copy">
             <span>
               Step {walkthroughStep + 1} of {walkthroughSteps.length}
