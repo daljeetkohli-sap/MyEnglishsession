@@ -222,7 +222,37 @@ function loadProgress() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (!saved) return null
-    return JSON.parse(saved)
+    const parsed = JSON.parse(saved)
+    const safeStep = Number.isInteger(parsed?.walkthroughStep)
+      ? Math.min(Math.max(parsed.walkthroughStep, 0), walkthroughSteps.length - 1)
+      : 0
+    const safeSectionInputs = {
+      quest: sourceOptions.some((option) => option.id === parsed?.sectionInputs?.quest)
+        ? parsed.sectionInputs.quest
+        : 'daily',
+      game: sourceOptions.some((option) => option.id === parsed?.sectionInputs?.game)
+        ? parsed.sectionInputs.game
+        : 'daily',
+      task: sourceOptions.some((option) => option.id === parsed?.sectionInputs?.task)
+        ? parsed.sectionInputs.task
+        : 'daily',
+      progress: sourceOptions.some((option) => option.id === parsed?.sectionInputs?.progress)
+        ? parsed.sectionInputs.progress
+        : 'daily',
+    }
+
+    return {
+      points: Number.isFinite(parsed?.points) ? parsed.points : 0,
+      completed: parsed?.completed && typeof parsed.completed === 'object' ? parsed.completed : {},
+      scenarioIndex: Number.isFinite(parsed?.scenarioIndex) ? parsed.scenarioIndex : 0,
+      sectionInputs: safeSectionInputs,
+      customFocus:
+        typeof parsed?.customFocus === 'string' && parsed.customFocus.trim()
+          ? parsed.customFocus
+          : 'meeting, shopping, phone call',
+      showWalkthrough: typeof parsed?.showWalkthrough === 'boolean' ? parsed.showWalkthrough : true,
+      walkthroughStep: safeStep,
+    }
   } catch {
     return null
   }
@@ -349,12 +379,12 @@ export default function App() {
   const [walkthroughStep, setWalkthroughStep] = useState(initial?.walkthroughStep ?? 0)
   const walkthroughRef = useRef(null)
 
-  const selected = gameWords.find((item) => item.id === selectedWord) ?? gameWords[0]
+  const selected = gameWords.find((item) => item.id === selectedWord) ?? gameWords[0] ?? questWords[0]
   const todayDone = completed[todayKey] ?? []
   const dailyDoneCount = questWords.filter((item) => todayDone.includes(item.id)).length
   const level = Math.floor(points / 80) + 1
   const levelProgress = points % 80
-  const currentScenario = getScenarioForSource(sectionInputs.task, scenarioIndex)
+  const currentScenario = getScenarioForSource(sectionInputs.task, scenarioIndex) ?? scenarios[0]
   const progressWords = getWordsForSource(sectionInputs.progress, baseDailySet, customFocus)
   const shuffledMeanings = useMemo(
     () => [...gameWords].sort((a, b) => a.meaning.localeCompare(b.meaning)),
@@ -453,7 +483,7 @@ export default function App() {
     setShowWalkthrough(true)
   }
 
-  const activeWalkthrough = walkthroughSteps[walkthroughStep]
+  const activeWalkthrough = walkthroughSteps[walkthroughStep] ?? walkthroughSteps[0]
 
   return (
     <main className="app-shell">

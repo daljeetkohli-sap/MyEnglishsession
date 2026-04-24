@@ -108,6 +108,13 @@ Custom focus accepts comma-separated user topics such as `meeting, shopping, pho
 - Disabled service-worker registration in local development to avoid stale cached UI during testing
 - Improves end-user clarity when the guide appears below the hero area
 
+### Pending commit - Harden local load against white page failures
+
+- Sanitized saved `localStorage` state before using it in React state
+- Added safe fallbacks for walkthrough steps, scenarios, section inputs, and selected words
+- Unregisters service workers automatically during local development to clear stale cached app shells
+- Reduces the chance of blank-page failures from old cached state or prior local service-worker scopes
+
 ### Latest commit - Fix local dev base path
 
 - Updated Vite base-path configuration so local dev runs at `http://127.0.0.1:5188/`
